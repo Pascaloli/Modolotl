@@ -24,7 +24,7 @@ class Modolotl(args: Array<String>) {
     }
 
     init {
-        Logger.setDebug(false)
+        Logger.setDebug(true)
 
         if (args.isEmpty()) {
             Logger.error("Token is missing")
@@ -36,14 +36,17 @@ class Modolotl(args: Array<String>) {
         initJda(token)
         initDb()
         cachingHandler.init()
+
+        Logger.log("Initialising EventListener")
+        jda.addEventListener(EventListener())
     }
 
     private fun initJda(token: String) {
         try {
             Logger.log("Initialising JDA")
-            jda = JDABuilder(AccountType.BOT).setToken(token).build().awaitReady()
+            jda = JDABuilder(AccountType.BOT).setToken(token).setGuildSubscriptionsEnabled(true).build().awaitReady()
 
-            if(jda.guilds.size > 1){
+            if (jda.guilds.size > 1) {
                 Logger.warn("The Bot is on more than one Server, this may lead to problems.")
             }
         } catch (le: LoginException) {
@@ -86,7 +89,7 @@ class Modolotl(args: Array<String>) {
                             "CREATE UNIQUE INDEX IF NOT EXISTS table_name_userid_uindex " +
                             "ON table_name (userid);"
             dbConnection.createStatement().execute(createTableQuery)
-        }catch(e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             Logger.error("Couldn't initialise Database Tables")
         }
