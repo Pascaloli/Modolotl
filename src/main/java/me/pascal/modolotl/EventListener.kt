@@ -3,13 +3,27 @@ package me.pascal.modolotl
 import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 class EventListener : ListenerAdapter() {
 
-    override fun onReady(event: ReadyEvent) {
-        Logger.info("Bot is now ready.")
-        super.onReady(event)
+    override fun onMessageReceived(event: MessageReceivedEvent) {
+        val message = event.message
+        if (message.author.id == message.jda.selfUser.id) return
+        val possibleCommand = message.contentRaw.split(" ")[0]
+        val prefix = Modolotl.settings.getPrefix()
+
+        if (possibleCommand.startsWith(prefix)) {
+            val actualCommand =
+                    possibleCommand.substring(prefix.length, possibleCommand.length)
+            val command = Modolotl.commandHandler.getCommand(actualCommand)
+            if (command != null)
+                Modolotl.commandHandler.handle(message, command)
+        }
+
+
+        super.onMessageReceived(event)
     }
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {

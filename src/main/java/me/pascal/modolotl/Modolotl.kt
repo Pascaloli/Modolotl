@@ -1,7 +1,9 @@
 package me.pascal.modolotl
 
 import me.pascal.modolotl.cache.CachingHandler
+import me.pascal.modolotl.command.CommandHandler
 import me.pascal.modolotl.utils.Logger
+import me.pascal.modolotl.utils.Settings
 import net.dv8tion.jda.api.AccountType
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -16,23 +18,46 @@ class Modolotl(args: Array<String>) {
     private val dbFile = File("modolotl.db").absoluteFile
     private val dbUrl = "jdbc:sqlite:${dbFile.path}"
 
+
     companion object {
         lateinit var dbConnection: Connection
+        lateinit var commandHandler: CommandHandler
         lateinit var jda: JDA
+        lateinit var settings: Settings
 
         var cachingHandler = CachingHandler()
     }
 
     init {
-        if (args.isEmpty()) {
+        settings = Settings()
+
+        if (args.isEmpty() && settings.getToken().isEmpty()) {
             Logger.error("Token is missing")
-            Logger.info("Specify your token as an argument (Ex: java -jar bot.jar tokenhere)")
+            Logger.info("Please specify your token as an argument (Ex: java -jar bot.jar tokenhere)")
+            Logger.info("Or in the modolotl.txt file")
             exitProcess(1)
         }
-        val token = args[0]
 
-        initJda(token)
+        if(args[0].isNotEmpty()){
+            settings.setToken(args[0])
+            Logger.info("Token as argument detected, using this instead of the Settings file")
+        }
+
+        if(settings.getModRole().isEmpty()){
+            Logger.error("No Modrole specified")
+            Logger.info("Please specify a Modrole in the modolotl.txt File using its ID")
+            exitProcess(2)
+        }
+
+        if(settings.getPrefix().isEmpty()){
+            Logger.error("No Prefix specified")
+            Logger.info("Please specify a Prefix in the modolotl.txt File")
+            exitProcess(3)
+        }
+
+        initJda(settings.getToken())
         initDb()
+        commandHandler = CommandHandler()
         cachingHandler.init()
 
         Logger.log("Initialising EventListener")
