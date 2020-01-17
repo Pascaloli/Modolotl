@@ -24,8 +24,6 @@ class Modolotl(args: Array<String>) {
     }
 
     init {
-        Logger.setDebug(true)
-
         if (args.isEmpty()) {
             Logger.error("Token is missing")
             Logger.info("Specify your token as an argument (Ex: java -jar bot.jar tokenhere)")
@@ -60,7 +58,7 @@ class Modolotl(args: Array<String>) {
 
     private fun initDb() {
         try {
-            Logger.log("Initialising Datebase Driver")
+            Logger.log("Initialising Database Driver")
             Class.forName("org.sqlite.JDBC")
         } catch (e: Exception) {
             Logger.error("Couldn't initialise Database Driver")
