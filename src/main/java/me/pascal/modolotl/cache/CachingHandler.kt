@@ -3,9 +3,6 @@ package me.pascal.modolotl.cache
 import me.pascal.modolotl.Modolotl
 import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.entities.Member
-import java.lang.Exception
-import java.sql.ResultSet
-import kotlin.system.exitProcess
 
 class CachingHandler {
 
@@ -33,6 +30,7 @@ class CachingHandler {
             //Adding Users to Cache List
             cache.addAll(usersInDb)
 
+            //Adding missing users into DB/cache
             val start = System.currentTimeMillis()
             var counter = 0
             Logger.log("Inserting missing Users into Database")
@@ -47,14 +45,18 @@ class CachingHandler {
                 }
             }
             val end = System.currentTimeMillis()
-            Logger.log("Inserted $counter Users in ${end - start}ms")
+            if (counter > 0) {
+                Logger.log("Inserted $counter Users in ${end - start}ms")
+            } else {
+                Logger.log("Database is already up to date")
+            }
         } catch (e: Exception) {
             Logger.error("Couldn't initialise User Cache")
             e.printStackTrace()
         }
     }
 
-    fun addUser(member: Member, force: Boolean){
+    fun addUser(member: Member, force: Boolean) {
         val userId = member.user.id
         if (force || getUserById(userId) == null) {
             val roles = member.roles.joinToString(",") { it.id }
