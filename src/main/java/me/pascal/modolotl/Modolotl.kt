@@ -1,12 +1,11 @@
 package me.pascal.modolotl
 
+import me.pascal.modolotl.cache.CachingHandler
 import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.AccountType
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
-import org.slf4j.LoggerFactory
 import java.io.File
-import java.lang.Exception
 import java.sql.Connection
 import java.sql.DriverManager
 import javax.security.auth.login.LoginException
@@ -20,9 +19,13 @@ class Modolotl(args: Array<String>) {
     companion object {
         lateinit var dbConnection: Connection
         lateinit var jda: JDA
+
+        var cachingHandler = CachingHandler()
     }
 
     init {
+        Logger.setDebug(false)
+
         if (args.isEmpty()) {
             Logger.error("Token is missing")
             Logger.info("Specify your token as an argument (Ex: java -jar bot.jar tokenhere)")
@@ -32,6 +35,7 @@ class Modolotl(args: Array<String>) {
 
         initJda(token)
         initDb()
+        cachingHandler.init()
     }
 
     private fun initJda(token: String) {
@@ -71,7 +75,7 @@ class Modolotl(args: Array<String>) {
         try {
             Logger.log("Initialising Database Tables")
             val createTableQuery =
-                    "CREATE TABLE users IF NOT EXIST (" +
+                    "CREATE TABLE IF NOT EXISTS users (" +
                             "userId INTEGER PRIMARY KEY, " +
                             "roles TEXT, " +
                             "mutedAt INTEGER, " +
@@ -79,10 +83,11 @@ class Modolotl(args: Array<String>) {
                             "mutedBy INTEGER, " +
                             "bannedBy INTEGER);" +
                             "" +
-                            "CREATE UNIQUE INDEX table_name_userid_uindex " +
+                            "CREATE UNIQUE INDEX IF NOT EXISTS table_name_userid_uindex " +
                             "ON table_name (userid);"
             dbConnection.createStatement().execute(createTableQuery)
         }catch(e: Exception){
+            e.printStackTrace()
             Logger.error("Couldn't initialise Database Tables")
         }
     }
