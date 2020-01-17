@@ -5,7 +5,7 @@ import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.entities.Member
 
 class CachingHandler {
-
+    
     private val cache: ArrayList<CachedUser> = arrayListOf()
 
     fun init() {
