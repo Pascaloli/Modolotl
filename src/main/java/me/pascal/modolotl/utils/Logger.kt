@@ -3,33 +3,15 @@ package me.pascal.modolotl.utils
 import org.slf4j.LoggerFactory
 
 object Logger {
+    private val logger: org.slf4j.Logger = LoggerFactory.getLogger("Modolotl")
 
-    private val name = "[Modolotl]"
-    private var debug = false
+    fun log(s: String) = this.logger.info(s)
 
-    fun log(s: String) {
-        println("$name $s")
-    }
+    fun error(s: String) = this.logger.error(s)
 
-    fun error(s: String) {
-        println("$name Error: $s")
-    }
+    fun info(s: String) = this.log(s)
 
-    fun info(s: String) {
-        println("$name Info: $s")
-    }
+    fun warn(s: String) = this.logger.warn(s)
 
-    fun warn(s: String) {
-        println("$name Warning: $s")
-    }
-
-    fun debug(s: String) {
-        if (debug)
-            println("$name Debug: $s")
-    }
-
-    fun setDebug(debug: Boolean) {
-        this.debug = debug
-    }
-
+    fun debug(s: String) = this.logger.debug(s)
 }
