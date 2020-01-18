@@ -9,23 +9,18 @@ import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.entities.Message
 
 class CommandHandler {
-
     private val commands = arrayListOf(
-            RoleCommand(), BanCommand(), KickCommand(), MuteCommand()
+        RoleCommand(), BanCommand(), KickCommand(), MuteCommand()
     )
 
     fun getCommand(name: String): Command? {
-        return commands.find { it.trigger.equals(name, ignoreCase = true) }
-    }
-
-    fun getCommands(): ArrayList<Command> {
-        return commands
+        return commands.find { it.trigger.equals(name, true) }
     }
 
     fun handle(message: Message, command: Command) {
         val author = message.member!!
-        if (command.permissions == PERMISSIONS.MOD) {
-            if (author.roles.map { it.id }.contains(Modolotl.settings.getModRole())) {
+        if (command.permission == CommandPermission.MOD) {
+            if (author.roles.map { it.id }.contains(Modolotl.settings.modRoleId)) {
                 command.handle(message)
                 Logger.warn("${author.effectiveName} - (Mod) executed '${message.contentRaw}'")
             } else {
@@ -34,7 +29,6 @@ class CommandHandler {
         } else {
             command.handle(message)
             Logger.warn("${author.effectiveName} executed '${message.contentRaw}'")
-
         }
     }
 }
