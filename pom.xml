@@ -10,6 +10,7 @@
 
   <properties>
     <kotlin.version>1.3.61</kotlin.version>
+    <serialization.version>0.14.0</serialization.version>
   </properties>
 
   <repositories>
@@ -17,6 +18,11 @@
       <id>jcenter</id>
       <name>jcenter-bintray</name>
       <url>https://jcenter.bintray.com</url>
+    </repository>
+    <repository>
+      <id>bintray-kotlin-kotlinx</id>
+      <name>bintray</name>
+      <url>https://kotlin.bintray.com/kotlinx</url>
     </repository>
   </repositories>
 
@@ -47,6 +53,11 @@
       <artifactId>logback-classic</artifactId>
       <version>1.2.3</version>
     </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-serialization-runtime</artifactId>
+      <version>${serialization.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -74,7 +85,17 @@
         </executions>
         <configuration>
           <jvmTarget>1.8</jvmTarget>
+          <compilerPlugins>
+            <plugin>kotlinx-serialization</plugin>
+          </compilerPlugins>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-serialization</artifactId>
+            <version>${kotlin.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>

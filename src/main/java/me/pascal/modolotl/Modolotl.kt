@@ -1,5 +1,7 @@
 package me.pascal.modolotl
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import me.pascal.modolotl.cache.CachingHandler
 import me.pascal.modolotl.command.CommandHandler
 import me.pascal.modolotl.utils.Logger
@@ -14,10 +16,12 @@ import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
 class Modolotl(args: Array<String>) {
+    private val json: Json = Json(JsonConfiguration.Stable.copy(prettyPrint = true))
 
     private val dbFile = File("modolotl.db").absoluteFile
     private val dbUrl = "jdbc:sqlite:${dbFile.path}"
 
+    private val settingsFile = File("settings.json")
 
     companion object {
         lateinit var dbConnection: Connection
@@ -29,39 +33,59 @@ class Modolotl(args: Array<String>) {
     }
 
     init {
-        settings = Settings()
+        this.loadSettings()
 
-        if (args.isEmpty() && settings.getToken().isEmpty()) {
+        if (args.isEmpty() && settings.token.isEmpty()) {
             Logger.error("Token is missing")
-            Logger.info("Please specify your token as an argument (Ex: java -jar bot.jar tokenhere)")
-            Logger.info("Or in the modolotl.txt file")
+            Logger.info("Please specify your token as an argument (Ex: java -jar bot.jar tokenhere) or in the ${settingsFile.name} file.")
             exitProcess(1)
         }
 
-        if(args[0].isNotEmpty()){
-            settings.setToken(args[0])
-            Logger.info("Token as argument detected, using this instead of the Settings file")
+        if (args.isNotEmpty() && args[0].isNotEmpty()) {
+            settings.token = args[0]
+            Logger.info("Token as argument detected, using it instead of token from the ${settingsFile.name} file.")
         }
 
-        if(settings.getModRole().isEmpty()){
-            Logger.error("No Modrole specified")
-            Logger.info("Please specify a Modrole in the modolotl.txt File using its ID")
+        if (settings.modRoleId.isEmpty()) {
+            Logger.error("No mod role ID specified")
+            Logger.info("Please specify a mod role ID in the ${settingsFile.name} file.")
             exitProcess(2)
         }
 
-        if(settings.getPrefix().isEmpty()){
-            Logger.error("No Prefix specified")
-            Logger.info("Please specify a Prefix in the modolotl.txt File")
+        if (settings.prefix.isEmpty()) {
+            Logger.error("No command prefix specified")
+            Logger.info("Please specify a command prefix in the ${settingsFile.name} file.")
             exitProcess(3)
         }
 
-        initJda(settings.getToken())
+        initJda(settings.token)
         initDb()
         commandHandler = CommandHandler()
         cachingHandler.init()
 
         Logger.log("Initialising EventListener")
         jda.addEventListener(EventListener())
+    }
+
+    /**
+     * Stringifies the [settings] object using [json] and saves it to the [settingsFile] in UTF-8.
+     *
+     * @author NurMarvin
+     */
+    private fun saveSettings() = this.settingsFile.writeText(this.json.stringify(Settings.serializer(), settings), Charsets.UTF_8)
+
+    /**
+     * Parses the contents of the [settingsFile] using [json] and assigns it to the [settings] object.
+     *
+     * @author NurMarvin
+     */
+    private fun loadSettings() {
+        if(!this.settingsFile.exists()) {
+            settings = Settings()
+            Logger.warn("Settings file doesn't exist, creating it")
+            this.saveSettings()
+        }
+        settings = this.json.parse(Settings.serializer(), this.settingsFile.readText(Charsets.UTF_8))
     }
 
     private fun initJda(token: String) {
@@ -101,16 +125,16 @@ class Modolotl(args: Array<String>) {
         try {
             Logger.log("Initialising Database Tables")
             val createTableQuery =
-                    "CREATE TABLE IF NOT EXISTS users (" +
-                            "userId INTEGER PRIMARY KEY, " +
-                            "roles TEXT, " +
-                            "mutedAt INTEGER, " +
-                            "mutedUntil INTEGER, " +
-                            "mutedBy INTEGER, " +
-                            "bannedBy INTEGER);" +
-                            "" +
-                            "CREATE UNIQUE INDEX IF NOT EXISTS table_name_userid_uindex " +
-                            "ON table_name (userid);"
+                "CREATE TABLE IF NOT EXISTS users (" +
+                    "userId INTEGER PRIMARY KEY, " +
+                    "roles TEXT, " +
+                    "mutedAt INTEGER, " +
+                    "mutedUntil INTEGER, " +
+                    "mutedBy INTEGER, " +
+                    "bannedBy INTEGER);" +
+                    "" +
+                    "CREATE UNIQUE INDEX IF NOT EXISTS table_name_userid_uindex " +
+                    "ON table_name (userid);"
             dbConnection.createStatement().execute(createTableQuery)
         } catch (e: Exception) {
             e.printStackTrace()

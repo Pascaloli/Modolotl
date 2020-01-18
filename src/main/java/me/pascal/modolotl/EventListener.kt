@@ -7,12 +7,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 class EventListener : ListenerAdapter() {
-
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val message = event.message
         if (message.author.id == message.jda.selfUser.id) return
         val possibleCommand = message.contentRaw.split(" ")[0]
-        val prefix = Modolotl.settings.getPrefix()
+        val prefix = Modolotl.settings.prefix
 
         if (possibleCommand.startsWith(prefix)) {
             val actualCommand =
