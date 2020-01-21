@@ -9,8 +9,9 @@ import me.pascal.modolotl.command.CommandHandler
  *
  * @property token The Discord Bot token used to authorize against the Discord gateway.
  * @property modRoleId The snowflake ID of the moderator role that is used to check if a member can use a [Command] that requires moderator permission.
+ * @property logChannelId The snowflake ID of the Channel to log events into
  * @property prefix The command prefix used in the [CommandHandler] to check if a message is a command.
  * @author NurMarvin
  */
 @Serializable
-data class Settings(var token: String = "", var modRoleId: String = "", var prefix: String = "")
+data class Settings(var token: String = "", var modRoleId: String = "", var logChannelId: String = "", var prefix: String = "")

@@ -1,12 +1,16 @@
 package me.pascal.modolotl
 
+import me.pascal.modolotl.utils.DiscordLogger
 import me.pascal.modolotl.utils.Logger
-import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
+import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 class EventListener : ListenerAdapter() {
+
     override fun onMessageReceived(event: MessageReceivedEvent) {
         val message = event.message
         if (message.author.id == message.jda.selfUser.id) return
@@ -27,12 +31,17 @@ class EventListener : ListenerAdapter() {
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
         val member = event.member
-        Logger.debug("Member ${member.effectiveName} joined")
         val userId = member.user.id
+
+        Logger.debug("Member ${member.effectiveName} joined")
+        DiscordLogger.logJoin(member)
+
+        //check if user exists in DB/Cache, if so reassign roles
         val cachedUser = Modolotl.cachingHandler.getUserById(userId)
-        if (cachedUser != null) {
+        if (cachedUser != null && cachedUser.roles.isNotEmpty()) {
             val guild = member.guild
-            cachedUser.roles.forEach { roleId ->
+            cachedUser.roles.filter { it.isNotBlank() }.forEach { roleId ->
+                println("lool: $roleId")
                 val role = guild.getRoleById(roleId)
                 if (role != null) {
                     if (!role.isManaged && !role.isPublicRole) {
@@ -49,4 +58,23 @@ class EventListener : ListenerAdapter() {
         }
         super.onGuildMemberJoin(event)
     }
+
+    override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
+        DiscordLogger.logLeave(event.member)
+        super.onGuildMemberLeave(event)
+    }
+
+    override fun onGuildMemberRoleAdd(event: GuildMemberRoleAddEvent) {
+        Modolotl.cachingHandler.updateRoles(event.member.id, event.member.roles.joinToString(","){it.id})
+        DiscordLogger.logRolesGiven(event.member, event.roles)
+        super.onGuildMemberRoleAdd(event)
+    }
+
+    override fun onGuildMemberRoleRemove(event: GuildMemberRoleRemoveEvent) {
+        Modolotl.cachingHandler.updateRoles(event.member.id, event.member.roles.joinToString(","){it.id})
+        DiscordLogger.logRolesRemoved(event.member, event.roles)
+        super.onGuildMemberRoleRemove(event)
+    }
+
+
 }
