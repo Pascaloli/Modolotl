@@ -3,9 +3,11 @@ package me.pascal.modolotl.cache
 import me.pascal.modolotl.Modolotl
 import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.User
+import java.sql.Types
 
 class CachingHandler {
-    
+
     private val cache: ArrayList<CachedUser> = arrayListOf()
 
     fun init() {
@@ -79,4 +81,32 @@ class CachingHandler {
         return cache.find { it.userId == id }
     }
 
+    fun updateRoles(id: String, roles: String) {
+        val cachedUser = getUserById(id)!!
+        Modolotl.dbConnection.prepareStatement("UPDATE users SET roles = ? WHERE userId = '$id'").use {
+            it.setString(1, roles)
+            cachedUser.roles = roles.split(",")
+            it.execute()
+        }
+    }
+
+    /**
+     * @return Returns [true] when given user got banned and [false] when he got unbanned
+     */
+    fun updateBan(toBan: User, banner: Member) {
+        val cachedUser = getUserById(toBan.id)!!
+        if (cachedUser.isBanned()) {
+            //Unban User
+            Modolotl.dbConnection.createStatement().use {
+                it.executeUpdate("UPDATE users SET bannedBy = null WHERE userId='${toBan.id}'")
+            }
+            cachedUser.bannedBy = null
+        } else {
+            //Ban User
+            Modolotl.dbConnection.createStatement().use {
+                it.executeUpdate("UPDATE users SET bannedBy = '${banner.id}' WHERE userId='${toBan.id}'")
+            }
+            cachedUser.bannedBy = banner.id
+        }
+    }
 }

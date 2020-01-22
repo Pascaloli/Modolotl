@@ -12,9 +12,7 @@ import java.sql.SQLException
 class KickCommand : Command("kick", CommandPermission.MOD) {
     override fun handle(message: Message) {
         val arguments = message.contentRaw.split(" ")
-        println("123")
         val userToKick = findUserToModerate(message, arguments) ?: return
-        println("456")
         val memberToKick = message.guild.getMemberById(userToKick.id)
         try {
             if (memberToKick != null) {
