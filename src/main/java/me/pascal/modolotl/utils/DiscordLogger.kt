@@ -75,7 +75,11 @@ object DiscordLogger {
     }
 
     fun logKick(kicked: User, kicker: Member) {
-
+        val embed = EmbedBuilder()
+        embed.setAuthor("Member kicked", null, kicked.effectiveAvatarUrl)
+        embed.setDescription("${kicked.asMention} ${kicked.name}#${kicked.discriminator}\n" +
+                "**Kicked** by ${kicker.asMention}")
+        logChannel.sendMessage(embed.build()).queue()
     }
 
     fun logCommand(member: Member, channel: TextChannel, command: String, raw: String) {

@@ -4,7 +4,6 @@ import me.pascal.modolotl.Modolotl
 import me.pascal.modolotl.utils.Logger
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.User
-import java.sql.Types
 
 class CachingHandler {
 
@@ -81,10 +80,12 @@ class CachingHandler {
         return cache.find { it.userId == id }
     }
 
-    fun updateRoles(id: String, roles: String) {
-        val cachedUser = getUserById(id)!!
-        Modolotl.dbConnection.prepareStatement("UPDATE users SET roles = ? WHERE userId = '$id'").use {
+    fun updateRoles(member: Member) {
+        val cachedUser = getUserById(member.id)!!
+        val roles = member.roles.joinToString(",") { it.id }
+        Modolotl.dbConnection.prepareStatement("UPDATE users SET roles = ? WHERE userId = ?").use {
             it.setString(1, roles)
+            it.setString(2, member.id)
             cachedUser.roles = roles.split(",")
             it.execute()
         }

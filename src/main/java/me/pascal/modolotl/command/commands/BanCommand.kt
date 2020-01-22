@@ -8,7 +8,6 @@ import me.pascal.modolotl.utils.DiscordLogger
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.exceptions.HierarchyException
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
-import org.sqlite.SQLiteException
 import java.sql.SQLException
 
 class BanCommand : Command("ban", CommandPermission.MOD) {

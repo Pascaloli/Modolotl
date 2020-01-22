@@ -65,13 +65,13 @@ class EventListener : ListenerAdapter() {
     }
 
     override fun onGuildMemberRoleAdd(event: GuildMemberRoleAddEvent) {
-        Modolotl.cachingHandler.updateRoles(event.member.id, event.member.roles.joinToString(","){it.id})
+        Modolotl.cachingHandler.updateRoles(event.member)
         DiscordLogger.logRolesGiven(event.member, event.roles)
         super.onGuildMemberRoleAdd(event)
     }
 
     override fun onGuildMemberRoleRemove(event: GuildMemberRoleRemoveEvent) {
-        Modolotl.cachingHandler.updateRoles(event.member.id, event.member.roles.joinToString(","){it.id})
+        Modolotl.cachingHandler.updateRoles(event.member)
         DiscordLogger.logRolesRemoved(event.member, event.roles)
         super.onGuildMemberRoleRemove(event)
     }
