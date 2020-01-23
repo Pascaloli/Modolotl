@@ -46,14 +46,18 @@ class RoleCommand : Command("role", CommandPermission.MOD) {
             Modolotl.cachingHandler.updateRoles(memberToModerator)
         } catch (ex: InsufficientPermissionException) {
             message.channel.sendMessage("$noEmote Missing permission `MANAGE_ROLES`").queue()
+            return
         } catch (ex: HierarchyException) {
             message.channel.sendMessage("$noEmote Cannot manage this role.").queue()
+            return
         } catch (ex: SQLException) {
             message.channel.sendMessage("$noEmote Database error occured, please check console.").queue()
             ex.printStackTrace()
+            return
         } catch (ex: Exception) {
             message.channel.sendMessage("$noEmote Error occured, please check console.").queue()
             ex.printStackTrace()
+            return
         }
     }
 }

@@ -9,6 +9,7 @@ import me.pascal.modolotl.utils.Settings
 import net.dv8tion.jda.api.AccountType
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.entities.Role
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
@@ -28,7 +29,7 @@ class Modolotl(args: Array<String>) {
         lateinit var commandHandler: CommandHandler
         lateinit var jda: JDA
         lateinit var settings: Settings
-
+        lateinit var mutedRole: Role
         var cachingHandler = CachingHandler()
     }
 
@@ -52,6 +53,12 @@ class Modolotl(args: Array<String>) {
             exitProcess(2)
         }
 
+        if (settings.mutedRoleId.isEmpty()) {
+            Logger.error("No muted role ID specified")
+            Logger.info("Please specify a muted role ID in the ${settingsFile.name} file.")
+            exitProcess(2)
+        }
+
         if (settings.prefix.isEmpty()) {
             Logger.error("No command prefix specified")
             Logger.info("Please specify a command prefix in the ${settingsFile.name} file.")
@@ -61,6 +68,7 @@ class Modolotl(args: Array<String>) {
         initJda(settings.token)
         initDb()
         commandHandler = CommandHandler()
+        mutedRole = jda.getRoleById(settings.mutedRoleId)!!
         cachingHandler.init()
 
         Logger.log("Initialising EventListener")

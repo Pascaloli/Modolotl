@@ -2,6 +2,7 @@ package me.pascal.modolotl
 
 import me.pascal.modolotl.utils.DiscordLogger
 import me.pascal.modolotl.utils.Logger
+import me.pascal.modolotl.utils.UnmuteTasks
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent
@@ -73,6 +74,10 @@ class EventListener : ListenerAdapter() {
     override fun onGuildMemberRoleRemove(event: GuildMemberRoleRemoveEvent) {
         Modolotl.cachingHandler.updateRoles(event.member)
         DiscordLogger.logRolesRemoved(event.member, event.roles)
+        if (event.roles.contains(Modolotl.mutedRole)) {
+            UnmuteTasks.getTaskById(event.member.id)?.cancel()
+            Modolotl.cachingHandler.updateMute(event.member, Modolotl.jda.selfUser, null, null, Modolotl.cachingHandler.getUserById(event.member.id)!!)
+        }
         super.onGuildMemberRoleRemove(event)
     }
 

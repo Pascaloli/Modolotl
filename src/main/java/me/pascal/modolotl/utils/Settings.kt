@@ -14,4 +14,4 @@ import me.pascal.modolotl.command.CommandHandler
  * @author NurMarvin
  */
 @Serializable
-data class Settings(var token: String = "", var modRoleId: String = "", var logChannelId: String = "", var prefix: String = "")
+data class Settings(var token: String = "", var modRoleId: String = "", var mutedRoleId: String = "", var logChannelId: String = "", var prefix: String = "")

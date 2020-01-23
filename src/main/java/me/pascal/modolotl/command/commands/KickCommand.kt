@@ -24,8 +24,10 @@ class KickCommand : Command("kick", CommandPermission.MOD) {
             }
         } catch (ex: InsufficientPermissionException) {
             message.channel.sendMessage("$noEmote Missing permission `KICK_MEMBERS`").queue()
+            return
         } catch (ex: HierarchyException) {
             message.channel.sendMessage("$noEmote Cannot kick this user").queue()
+            return
         }
     }
 }

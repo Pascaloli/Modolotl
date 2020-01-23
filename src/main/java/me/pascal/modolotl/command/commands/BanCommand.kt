@@ -24,16 +24,19 @@ class BanCommand : Command("ban", CommandPermission.MOD) {
                 message.guild.ban(userToModerate, 7, reason).queue()
                 DiscordLogger.logUnban(userToModerate, message.member!!)
             }
-            Modolotl.cachingHandler.updateBan(userToModerate, message.member!!)
+            Modolotl.cachingHandler.updateBan(userToModerate, message.member!!, cache)
             message.channel.sendMessage("$yesEmote " +
                     "**_${userToModerate.name}#${userToModerate.discriminator} was ${if(cache.isBanned()) "banned" else "unbanned"}_**").queue()
         } catch (ex: InsufficientPermissionException){
             message.channel.sendMessage("$noEmote Missing permission `BAN_MEMBERS`").queue()
+            return
         } catch(ex: HierarchyException) {
             message.channel.sendMessage("$noEmote Cannot ban this user").queue()
+            return
         } catch(ex: SQLException) {
             message.channel.sendMessage("$noEmote Database error occured, please check console.").queue()
             ex.printStackTrace()
+            return
         }
     }
 }

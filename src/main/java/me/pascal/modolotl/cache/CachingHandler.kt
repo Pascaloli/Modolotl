@@ -2,8 +2,11 @@ package me.pascal.modolotl.cache
 
 import me.pascal.modolotl.Modolotl
 import me.pascal.modolotl.utils.Logger
+import me.pascal.modolotl.utils.UnmuteTasks
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.User
+import java.util.*
+import kotlin.collections.ArrayList
 
 class CachingHandler {
 
@@ -30,6 +33,26 @@ class CachingHandler {
 
             //Adding Users to Cache List
             cache.addAll(usersInDb)
+
+            cache.forEach {
+                if (it.isMuted() && it.mutedUntil != null) {
+                    val member = Modolotl.jda.guilds[0].getMemberById(it.userId)!!
+                    if (System.currentTimeMillis() > it.mutedUntil!!) {
+                        Modolotl.jda.guilds[0].removeRoleFromMember(member, Modolotl.mutedRole).queue()
+                    } else {
+                        val timer = Timer()
+                        val task = object : TimerTask() {
+                            override fun run() {
+                                if (member.roles.contains(Modolotl.mutedRole)) {
+                                    member.guild.removeRoleFromMember(member, Modolotl.mutedRole).queue()
+                                }
+                            }
+                        }
+                        timer.schedule(task, it.mutedUntil!! - it.mutedAt!!)
+                        UnmuteTasks.addTask(it.userId, task)
+                    }
+                }
+            }
 
             //Adding missing users into DB/cache
             val start = System.currentTimeMillis()
@@ -91,11 +114,7 @@ class CachingHandler {
         }
     }
 
-    /**
-     * @return Returns [true] when given user got banned and [false] when he got unbanned
-     */
-    fun updateBan(toBan: User, banner: Member) {
-        val cachedUser = getUserById(toBan.id)!!
+    fun updateBan(toBan: User, banner: Member, cachedUser: CachedUser) {
         if (cachedUser.isBanned()) {
             //Unban User
             Modolotl.dbConnection.createStatement().use {
@@ -109,5 +128,40 @@ class CachingHandler {
             }
             cachedUser.bannedBy = banner.id
         }
+    }
+
+    fun updateMute(muted: Member, muter: User?, mutedAt: Long?, mutedUntil: Long?, cachedUser: CachedUser) {
+        if (!cachedUser.isMuted()) {
+            //muten
+            if (mutedUntil != null && mutedAt != null) {
+                val timer = Timer()
+                val task = object : TimerTask() {
+                    override fun run() {
+                        if (muted.roles.contains(Modolotl.mutedRole)) {
+                            muted.guild.removeRoleFromMember(muted, Modolotl.mutedRole).queue()
+                        }
+                    }
+                }
+                timer.schedule(task, mutedUntil - mutedAt)
+                println("Timer scheduled: ${mutedUntil - mutedAt}")
+                UnmuteTasks.addTask(muted.id, task)
+            }
+            Modolotl.dbConnection.createStatement().use {
+                it.executeUpdate("UPDATE users SET mutedAt=$mutedAt, mutedUntil=$mutedUntil, mutedBy='${muter!!.id}' WHERE userId='${muted.id}'")
+            }
+            cachedUser.mutedAt = mutedAt
+            cachedUser.mutedUntil = mutedUntil
+            cachedUser.mutedBy = muter!!.id
+
+        } else {
+            //unmuten
+            Modolotl.dbConnection.createStatement().use {
+                it.executeUpdate("UPDATE users SET mutedAt= null, mutedUntil= null, mutedBy=null WHERE userId='${muted.id}'")
+            }
+            cachedUser.mutedAt = null
+            cachedUser.mutedUntil = null
+            cachedUser.mutedBy = null
+        }
+
     }
 }

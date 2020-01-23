@@ -7,6 +7,6 @@ data class CachedUser(var userId: String, var roles: List<String>, var mutedAt: 
     }
 
     fun isMuted(): Boolean {
-        return mutedAt != null && mutedBy != null && mutedBy != null
+        return mutedBy != null
     }
 }

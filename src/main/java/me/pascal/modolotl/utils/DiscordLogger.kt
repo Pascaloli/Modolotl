@@ -53,8 +53,18 @@ object DiscordLogger {
         logChannel.sendMessage(embed.build()).queue()
     }
 
-    fun logMute() {
+    fun logMute(muted: Member, muter: Member, reason: String, prettyDuration: String) {
+        val embed = EmbedBuilder()
+        embed.setAuthor("${muted.user.name}#${muted.user.discriminator}", null, muted.user.effectiveAvatarUrl)
+        embed.setDescription("${muted.asMention} was muted for `${reason}` by ${muter.asMention}\nDuration: $prettyDuration")
+        logChannel.sendMessage(embed.build()).queue()
+    }
 
+    fun logUnmute(muted: Member, unmuter: User){
+        val embed = EmbedBuilder()
+        embed.setAuthor("${muted.user.name}#${muted.user.discriminator}", null, muted.user.effectiveAvatarUrl)
+        embed.setDescription("${muted.asMention} was unmuted by ${unmuter.asMention}")
+        logChannel.sendMessage(embed.build()).queue()
     }
 
     fun logBan(banned: User, banner: Member, reason: String) {
